@@ -1,0 +1,1 @@
+# Update this file if candidate decided to use the AWS CDK for infrastructure provisioning
