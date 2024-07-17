@@ -1,0 +1,71 @@
+# workflow to build and push docker image to AWS ECR (Elastic Container Registory)
+
+name: Deploy to ECR
+
+# workflow execution
+on:
+#   # Triggers the workflow on push, when any cahnges are done in repo on master branch
+  # push:
+  #   branches: [ master ]
+  
+  # Allow Manually trigger the workflow from GitHuB Action tab
+  workflow_dispatch:
+  
+#Jobs to build, configure and push 
+jobs:
+
+  Deployment:
+    name: Build Image
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.2.0
+   
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-south-1
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build Docker image
+      run: |
+        docker build -t my-flask-app .
+
+    - name: Push Docker image to ECR
+      run: |
+        docker tag my-flask-app:latest <your_ecr_repo_uri>:latest
+        docker push <your_ecr_repo_uri>:latest
+      
+    # - name: Build, tag and push image to ECR
+    #   env:
+    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    #     ECR_REPOSITORY: docker_nodejs_demo
+    #     IMAGE_TAG: nodejs_action_demo
+    #   run: |
+    #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+    #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    # - name: Deploy to EKS
+    #   uses: aws-actions/eks-update-kubeconfig@v1
+    #   with:
+    #     cluster-name: my-cluster
+    #     region: us-west-2
+
+    #   - name: Verify Deployment
+    #     run: |
+    #       kubectl rollout status deployment/flask-app
+
+
+
+
+          
