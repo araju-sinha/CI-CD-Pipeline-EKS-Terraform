@@ -39,7 +39,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t my-flask-app app/Dcokerfile
+        docker build  -f app/Dockerfile -t my-flask-app
 
     # - name: Push Docker image to ECR
     #   run: |
