@@ -61,7 +61,10 @@ jobs:
         cd infra/terraform 
         terraform init
         terraform plan
-        terraform apply -auto-approve
+
+    - name: terraform apply
+      if: steps.plan.outputs.has_changes == 'true'
+      run: terraform apply -auto-approve
 
     - name: Get ECR repository URL
       id: ecr
