@@ -1,10 +1,10 @@
 provider "aws" {
-  region = "us-east-1"
+  region = "us-west-2"
 }
 
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "my-terraform-state-bucket"
-  region = "us-east-1"
+  region = "us-west-2"
   acl    = "private"
 
   versioning {
@@ -16,7 +16,7 @@ terraform {
   backend "s3" {
     bucket         = "my-terraform-state-bucket"
     key            = "terraform.tfstate"
-    region         = "us-east-1"
+    region         = "us-west-2"
     encrypt        = true
   }
 }
