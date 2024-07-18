@@ -37,22 +37,30 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Get commit hash
-      id: get-commit-hash
-      run: echo "::set-output name=commit-hash::$(git rev-parse --short HEAD)"
+    - name: Configure Docker Client
+      run: |-
+         gcloud auth configure-docker --quiet
+         gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-    # - name: Build Docker image
-    #   run: docker build -t my-flask-app -f app/Dockerfile
+    # - name: Get commit hash
+    #   id: get-commit-hash
+    #   run: echo "::set-output name=commit-hash::$(git rev-parse --short HEAD)"
+
+    - name: docker version command
+      run: docker --version
+
+    - name: Build Docker image
+      run: docker build -t my-flask-app -f app/Dockerfile
       
-    - name: build, tag and push image to ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: my-flask-app
-        IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}
-#        IMAGE_TAG: flask_app
-      run: |
-        docker build . -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG /app
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+#     - name: build, tag and push image to ECR
+#       env:
+#         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#         ECR_REPOSITORY: my-flask-app
+#         IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}
+# #        IMAGE_TAG: flask_app
+#       run: |
+#         docker build . -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG /app
+#         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
     # - name: Deploy to EKS
     #   uses: aws-actions/eks-update-kubeconfig@v1
