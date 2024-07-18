@@ -24,7 +24,7 @@ jobs:
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v2
       with:
-        terraform_version: 1.2.0
+        terraform_version: 1.5.0
    
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -49,8 +49,23 @@ jobs:
     - name: docker version command
       run: docker --version
 
-    # - name: Build Docker image
-    #   run: docker build -t my-flask-app ./app
+    - name: Initialize Terraform
+      run: terraform init
+
+    - name: Terraform Format Check
+      run: terraform fmt -check
+
+    - name: Terraform Plan
+      run: terraform plan
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main'
+      run: terraform apply -auto-approve
+
+    # - name: Get ECR repository URL
+    #   id: ecr
+    #   run: echo "::set-output name=url::$(terraform output -raw ecr_repository_url)"
+
       
     - name: build, tag and push image to ECR
       env:
