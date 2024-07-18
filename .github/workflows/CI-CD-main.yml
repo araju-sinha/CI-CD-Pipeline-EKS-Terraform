@@ -49,6 +49,13 @@ jobs:
     - name: docker version command
       run: docker --version
 
+    - name: executing fw commands 
+      run: | 
+        pwd
+        cd infra/terraform 
+        pwd
+        ls 
+
     - name: Initialize Terraform
       run: |
         terraform init
