@@ -49,18 +49,18 @@ jobs:
     - name: docker version command
       run: docker --version
 
-    - name: Build Docker image
-      run: docker build -t my-flask-app ./app
+    # - name: Build Docker image
+    #   run: docker build -t my-flask-app ./app
       
-#     - name: build, tag and push image to ECR
-#       env:
-#         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-#         ECR_REPOSITORY: my-flask-app
-#         IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}
-# #        IMAGE_TAG: flask_app
-#       run: |
-#         docker build . -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG /app
-#         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    - name: build, tag and push image to ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: my-flask-app
+        IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}
+#        IMAGE_TAG: flask_app
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
     # - name: Deploy to EKS
     #   uses: aws-actions/eks-update-kubeconfig@v1
