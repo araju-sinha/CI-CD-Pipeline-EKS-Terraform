@@ -39,7 +39,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t my-flask-app -f app/Dockerfile
+        docker buildx build -t my-flask-app -f app/Dockerfile
 
   #  $docker build -t ImageName:TagName loc – dockerfile location
 
