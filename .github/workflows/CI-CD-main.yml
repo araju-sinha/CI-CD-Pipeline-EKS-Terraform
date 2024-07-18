@@ -38,8 +38,7 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Build Docker image
-      run: |
-        docker buildx build -t my-flask-app -f app/Dockerfile
+      run: docker build -t my-flask-app -f app/Dockerfile
 
   #  $docker build -t ImageName:TagName loc – dockerfile location
 
