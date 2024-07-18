@@ -19,3 +19,7 @@ resource "aws_ecr_repository" "flask_app_repo" {
   image_tag_mutability = "IMMUTABLE"
 
 }
+
+output "ecr_repository_url" {
+  value = aws_ecr_repository.example.repository_url
+}
