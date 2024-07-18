@@ -13,7 +13,7 @@ resource "aws_s3_bucket" "terraform_state" {
 
 terraform {
   backend "s3" {
-    bucket         = aws_s3_bucket.terraform_state.bucket
+    bucket         = "my-terraform-state-bucket"
     key            = "terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
