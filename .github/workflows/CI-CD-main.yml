@@ -49,8 +49,8 @@ jobs:
     - name: docker version command
       run: docker --version
 
-    # - name: Build Docker image
-    #   run: docker build -t my-flask-app -f app/Dockerfile
+    - name: Build Docker image
+      run: docker build -t my-flask-app -f app/Dockerfile
       
 #     - name: build, tag and push image to ECR
 #       env:
