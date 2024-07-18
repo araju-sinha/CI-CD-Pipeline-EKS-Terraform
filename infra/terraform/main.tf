@@ -4,6 +4,7 @@ provider "aws" {
 
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "my-terraform-state-bucket"
+  region = "us-east-1"
   acl    = "private"
 
   versioning {
