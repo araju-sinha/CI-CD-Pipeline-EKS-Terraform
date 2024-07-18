@@ -2,22 +2,24 @@ provider "aws" {
   region = "us-east-1"
 }
 
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
+resource "aws_s3_bucket" "terraform_state" {
+  bucket = "my-terraform-state-bucket"
+  acl    = "private"
+
+  versioning {
+    enabled = true
   }
 }
 
 terraform {
   backend "s3" {
-    bucket         = "terraform-state-bucket"
+    bucket         = aws_s3_bucket.terraform_state.bucket
     key            = "terraform.tfstate"
     region         = "us-east-1"
+    encrypt        = true
   }
 }
+
 
 
 #Container Registry
