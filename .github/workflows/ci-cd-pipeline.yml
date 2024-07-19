@@ -6,7 +6,8 @@ on:
   workflow_dispatch:
 env:
  ECR_REPOSITORY: flask_app_ecr
- IMAGE_TAG: ${{ github.sha }}
+ IMAGE_TAG: ${{ github.sha }
+ AWS_REGION: us-west-2
 
 #Jobs to build, configure and push 
 jobs:
@@ -17,19 +18,19 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-west-2
+    # - name: Configure AWS credentials
+    #   uses: aws-actions/configure-aws-credentials@v1
+    #   with:
+    #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+    #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #     aws-region: ${{ env.AWS_REGION }}
 
     - name: Set up AWS CLI
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-west-2
+        aws-region: ${{ env.AWS_REGION }}
 
     - name: Get ECR repository URI
     # ecr_repository_url = "678499129427.dkr.ecr.us-west-2.amazonaws.com/flask_app_ecr"
@@ -58,12 +59,20 @@ jobs:
         docker push ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
 #        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
      #   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-     
-    - name: Deploy to EKS
-      uses: aws-actions/amazon-eks-deploy@v1
-      with:
-        eks-cluster: ${{ env.EKS_CLUSTER }}
-        image: ${{ steps.build-image.outputs.image }}
+    # - name: Deploy to EKS
+    #   run: |
+    #     COMMIT_SHA=${{ github.sha }}
+    #     kubectl set image deployment/my-deployment my-container=${{ env.ECR_REPOSITORY_URI }}:$COMMIT_SHA --record
+    #     kubectl rollout status deployment/my-deployment
+    # - name: Deploy to EKS
+    #   uses: aws-actions/amazon-eks-deploy@v2
+    #   with:
+    #     aws-region: ${{ env.AWS_REGION }}
+    #     cluster-name: ${{ env.ECS_CLUSTER }}
+    #     service-name: ${{ env.ECS_SERVICE }}
+    #     container-name: ${{ env.CONTAINER_NAME }}
+    #     container-port: 80
+    #     image: ${{ steps.build-image.outputs.image }}
 
 
 
