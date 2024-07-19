@@ -9,8 +9,6 @@ env:
  IMAGE_TAG: ${{ github.sha }}
  AWS_REGION: us-west-2
  EKS_CLUSTER_NAME: eks-cluster-01
- DEPLOYMENT_NAME: my-deployment
- CONTAINER_NAME: my-container
 
 #Jobs to build, configure and push 
 jobs:
@@ -59,9 +57,6 @@ jobs:
         docker build -t ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG ./app
         docker ps -a 
         docker push ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
-        # docker build -t my-repository .
-        # docker tag my-repository:latest ${{ steps.ecr-login.outputs.registry }}/my-repository:latest
-        # docker push ${{ steps.ecr-login.outputs.registry }}/my-repository:latest
 
     - name: Install kubectl
       run: |
