@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 env:
  ECR_REPOSITORY: flask_app_ecr
- IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}
+ IMAGE_TAG: ${{ github.sha }}
 
 #Jobs to build, configure and push 
 jobs:
