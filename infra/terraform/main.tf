@@ -2,34 +2,29 @@ provider "aws" {
   region = "us-west-2"
 }
 
-resource "aws_s3_bucket" "terraform_state" {
-  bucket = "my-terraform-state-bucket"
-  region = "us-west-2"
-  acl    = "private"
-
-  versioning {
-    enabled = true
-  }
-}
-
 terraform {
   backend "s3" {
-    bucket         = "my-terraform-state-bucket"
+    bucket         = "eks-rds-state-bucket"
     key            = "terraform.tfstate"
     region         = "us-west-2"
     encrypt        = true
-    dynamodb_table = "terraform-lock-table"
   }
 }
 
-
+provider "aws" {
+  region = "us-west-2"
+  access_key = ${{ secrets.AWS_ACCESS_KEY }}
+  secret_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+}
 
 #Container Registry
-resource "aws_ecr_repository" "flask_app_repo" {
-  name = "my-flask-app"
+resource "aws_ecr_repository" "flask_app_ecr" {
+  name = "flask_app_ecr"
 
   image_tag_mutability = "IMMUTABLE"
-
+  tags = {
+    Name = "flask_app_ecr"
+  }
 }
 
 output "ecr_repository_url" {
