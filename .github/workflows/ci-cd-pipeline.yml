@@ -45,8 +45,10 @@ jobs:
 #        IMAGE_TAG: flask_app
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $flask_image_output
+        echo $flask_image_output
+
+     #   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
      
     - name: executing docker commands
       run: docker ps -a 
