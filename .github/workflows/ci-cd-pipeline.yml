@@ -8,6 +8,9 @@ env:
  ECR_REPOSITORY: flask_app_ecr
  IMAGE_TAG: ${{ github.sha }}
  AWS_REGION: us-west-2
+ EKS_CLUSTER_NAME: eks-cluster-01
+ DEPLOYMENT_NAME: my-deployment
+ CONTAINER_NAME: my-container
 
 #Jobs to build, configure and push 
 jobs:
@@ -52,27 +55,59 @@ jobs:
       run: docker --version
 
     - name: build, tag and push image to ECR
-#        IMAGE_TAG: flask_app
       run: |
         docker build -t ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG ./app
         docker ps -a 
         docker push ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
-#        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
-     #   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-    # - name: Deploy to EKS
-    #   run: |
-    #     COMMIT_SHA=${{ github.sha }}
-    #     kubectl set image deployment/my-deployment my-container=${{ env.ECR_REPOSITORY_URI }}:$COMMIT_SHA --record
-    #     kubectl rollout status deployment/my-deployment
-    # - name: Deploy to EKS
-    #   uses: aws-actions/amazon-eks-deploy@v2
-    #   with:
-    #     aws-region: ${{ env.AWS_REGION }}
-    #     cluster-name: ${{ env.ECS_CLUSTER }}
-    #     service-name: ${{ env.ECS_SERVICE }}
-    #     container-name: ${{ env.CONTAINER_NAME }}
-    #     container-port: 80
-    #     image: ${{ steps.build-image.outputs.image }}
+        # docker build -t my-repository .
+        # docker tag my-repository:latest ${{ steps.ecr-login.outputs.registry }}/my-repository:latest
+        # docker push ${{ steps.ecr-login.outputs.registry }}/my-repository:latest
+
+    - name: Set up kubectl
+      uses: actions/setup-kubectl@v1
+      with:
+        version: 'latest'
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --name {{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+    - name: Deploy to EKS
+      run: |
+        kubectl apply -f - <<EOF
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: my-flask-app
+        spec:
+          replicas: 3
+          selector:
+            matchLabels:
+              app: my-flask-app
+          template:
+            metadata:
+              labels:
+                app: my-flask-app
+            spec:
+              containers:
+              - name: my-flask-app
+                image: ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
+                ports:
+                - containerPort: 80
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: my-app-service
+        spec:
+          type: LoadBalancer
+          selector:
+            app: my-flask-app
+          ports:
+            - protocol: TCP
+              port: 80
+              targetPort: 80
+        EOF
 
 
 
