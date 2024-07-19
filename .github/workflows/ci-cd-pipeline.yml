@@ -7,7 +7,6 @@ on:
   
 #Jobs to build, configure and push 
 jobs:
-
   Deployment:
     name: CI-CD of flask application
     runs-on: ubuntu-latest
@@ -38,7 +37,6 @@ jobs:
       id: ecr
       run: echo "::set-output name=url::$(terraform output -raw ecr_repository_url)"
 
-      
     - name: build, tag and push image to ECR
       env:
         ECR_REGISTRY: ${{ steps.ecr.outputs.url }}
@@ -47,15 +45,18 @@ jobs:
 #        IMAGE_TAG: flask_app
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
-     #   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $flask_image_output
+     
+    - name: executing docker commands
+      run: docker ps -a 
 
-    # - name: Build Docker image
-    #     run: |
-    #       docker build -t ${{ secrets.ECR_REPOSITORY_URI }}:latest .
+    # - name: Deploy to EKS
+    #   uses: aws-actions/amazon-eks-deploy@v1
+    #   with:
+    #     eks-cluster: ${{ env.EKS_CLUSTER }}
+    #     image: ${{ steps.build-image.outputs.image }}
 
-    #   - name: Push Docker image to ECR
-    #     run: |
-    #       docker push ${{ secrets.ECR_REPOSITORY_URI }}:latest
 
 
 
