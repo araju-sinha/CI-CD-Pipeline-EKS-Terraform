@@ -39,9 +39,10 @@ jobs:
         cd infra/terraform 
         terraform init
         terraform plan
+        terraform apply -auto-approve
 
-    - name: terraform apply
-      run: terraform apply -auto-approve
+    # - name: terraform apply
+    #   run: terraform apply -auto-approve
 
     - name: Set up AWS CLI
       uses: aws-actions/configure-aws-credentials@v2
