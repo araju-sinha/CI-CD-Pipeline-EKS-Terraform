@@ -59,11 +59,11 @@ jobs:
 #        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
      #   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
      
-    # - name: Deploy to EKS
-    #   uses: aws-actions/amazon-eks-deploy@v1
-    #   with:
-    #     eks-cluster: ${{ env.EKS_CLUSTER }}
-    #     image: ${{ steps.build-image.outputs.image }}
+    - name: Deploy to EKS
+      uses: aws-actions/amazon-eks-deploy@v1
+      with:
+        eks-cluster: ${{ env.EKS_CLUSTER }}
+        image: ${{ steps.build-image.outputs.image }}
 
 
 
