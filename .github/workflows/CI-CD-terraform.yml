@@ -37,8 +37,9 @@ jobs:
     - name: Initialize Terraform
       run: |
         cd infra/terraform 
-        terraform init -auto-approve
-        terraform plan -auto-approve
+        terraform init 
+        terrafporm validate
+        terraform plan 
 
     - name: terraform apply
       run: |
