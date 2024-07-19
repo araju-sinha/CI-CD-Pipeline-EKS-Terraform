@@ -18,3 +18,7 @@ output "private_subnet_ids" {
     aws_subnet.private_2.id
   ]
 }
+
+output "ecr_repository_url" {
+  value       = aws_ecr_repository.flask_app_ecr.repository_url
+}
