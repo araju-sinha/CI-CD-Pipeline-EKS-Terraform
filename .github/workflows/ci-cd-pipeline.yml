@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 env:
  ECR_REPOSITORY: flask_app_ecr
- IMAGE_TAG: ${{ github.sha }
+ IMAGE_TAG: ${{ github.sha }}
  AWS_REGION: us-west-2
 
 #Jobs to build, configure and push 
