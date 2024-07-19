@@ -8,16 +8,6 @@ provider "aws" {
   secret_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 }
 
-terraform {
-  backend "s3" {
-    bucket         = "eks-rds-state-bucket"
-    key            = "terraform.tfstate"
-    region         = "us-west-2"
-    encrypt        = true
-  }
-}
-
-
 #Container Registry
 resource "aws_ecr_repository" "flask_app_ecr" {
   name = "flask_app_ecr"
