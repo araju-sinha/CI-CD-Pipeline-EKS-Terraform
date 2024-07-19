@@ -63,10 +63,12 @@ jobs:
         # docker tag my-repository:latest ${{ steps.ecr-login.outputs.registry }}/my-repository:latest
         # docker push ${{ steps.ecr-login.outputs.registry }}/my-repository:latest
 
-    - name: Set up kubectl
-      uses: actions/setup-kubectl@v1
-      with:
-        version: 'latest'
+    - name: Install kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl"
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+        kubectl version --client
 
     - name: Update kubeconfig
       run: |
