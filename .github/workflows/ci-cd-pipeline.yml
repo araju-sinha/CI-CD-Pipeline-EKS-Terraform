@@ -9,6 +9,7 @@ env:
  IMAGE_TAG: ${{ github.sha }}
  AWS_REGION: us-west-2
  EKS_CLUSTER_NAME: eks-cluster-01
+ APP_NAME: my-flask-app
 
 #Jobs to build, configure and push 
 jobs:
@@ -75,19 +76,19 @@ jobs:
         apiVersion: apps/v1
         kind: Deployment
         metadata:
-          name: my-flask-app
+          name: ${{ env.APP_NAME }}
         spec:
           replicas: 3
           selector:
             matchLabels:
-              app: my-flask-app
+              app: ${{ env.APP_NAME }}
           template:
             metadata:
               labels:
-                app: my-flask-app
+                app: ${{ env.APP_NAME }}
             spec:
               containers:
-              - name: my-flask-app
+              - name: ${{ env.APP_NAME }}
                 image: ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
                 ports:
                 - containerPort: 80
@@ -99,7 +100,7 @@ jobs:
         spec:
           type: LoadBalancer
           selector:
-            app: my-flask-app
+            app: ${{ env.APP_NAME }}
           ports:
             - protocol: TCP
               port: 80
