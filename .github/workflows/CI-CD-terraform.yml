@@ -1,21 +1,22 @@
-# workflow to build and push docker image to AWS ECR (Elastic Container Registory)
-
 name: Deploy to ECR
-
-# workflow execution
 on:
-#   # Triggers the workflow on push, when any cahnges are done in repo on master branch
+  # Triggers the workflow on push, when any cahnges are done in repo on master branch
   # push:
   #   branches: [ master ]
-  
   # Allow Manually trigger the workflow from GitHuB Action tab
   workflow_dispatch:
+env:
+ ECR_REPOSITORY: flask_app_ecr
+ IMAGE_TAG: ${{ github.sha }}
+ AWS_REGION: us-west-2
+ EKS_CLUSTER_NAME: eks-cluster-01
+ APP_NAME: my-flask-app
   
 #Jobs to build, configure and push 
 jobs:
 
   Deployment:
-    name: Build Image
+    name: Automated pipeline
     runs-on: ubuntu-latest
     steps:
     - name: Check out code
@@ -25,13 +26,36 @@ jobs:
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: 1.5.0
+        
+    - name: Initialize Terraform
+      run: |
+        cd infra/terraform 
+        terraform init
+        terraform plan
+
+    - name: terraform apply
+      run: terraform apply -auto-approve
    
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Get ECR repository URI
+    # ecr_repository_url = "678499129427.dkr.ecr.us-west-2.amazonaws.com/flask_app_ecr"
+      id: get_ecr_uri
+      run: |
+        ECR_REPOSITORY_URI=$(aws ecr describe-repositories --repository-names $ECR_REPOSITORY --query 'repositories[0].repositoryUri' --output text)
+        echo "ECR_REPOSITORY_URI=$ECR_REPOSITORY_URI" >> $GITHUB_ENV
 
     - name: Login to Amazon ECR
       id: login-ecr
@@ -42,69 +66,64 @@ jobs:
          gcloud auth configure-docker --quiet
          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-    # - name: Get commit hash
-    #   id: get-commit-hash
-    #   run: echo "::set-output name=commit-hash::$(git rev-parse --short HEAD)"
-
-    - name: docker version command
-      run: docker --version
-
-    - name: executing fw commands 
-      run: | 
-        pwd
-        cd infra/terraform 
-        pwd
-        ls 
-
-    - name: Initialize Terraform
+    - name: build, tag and push image to ECR
       run: |
-        cd infra/terraform 
-        terraform init
-        terraform plan
+        docker build -t ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG ./app
+        docker push ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
 
-    - name: terraform apply
-     # if: github.ref == 'refs/heads/master'
-      #if: steps.plan.outputs.has_changes == 'true'
-      run: terraform apply -auto-approve
+    - name: Install kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl"
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+        kubectl version --client
 
-    - name: Get ECR repository URL
-      id: ecr
-      run: echo "::set-output name=url::$(terraform output -raw ecr_repository_url)"
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
-    # - name: Terraform Format Check
-    #   run: terraform fmt -check
+    - name: Deploy to EKS
+      run: |
+        kubectl apply -f - <<EOF
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: ${{ env.APP_NAME }}
+        spec:
+          replicas: 3
+          selector:
+            matchLabels:
+              app: ${{ env.APP_NAME }}
+          template:
+            metadata:
+              labels:
+                app: ${{ env.APP_NAME }}
+            spec:
+              containers:
+              - name: ${{ env.APP_NAME }}
+                image: ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
+                ports:
+                - containerPort: 80
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: my-app-service
+        spec:
+          type: LoadBalancer
+          selector:
+            app: ${{ env.APP_NAME }}
+          ports:
+            - protocol: TCP
+              port: 80
+              targetPort: 80
+        EOF
+    
 
-    # - name: Terraform Plan
-    #   run: terraform plan
 
-    # - name: Terraform Apply
-    #   if: github.ref == 'refs/heads/main'
-    #   run: terraform apply -auto-approve
-
-    # - name: Get ECR repository URL
-    #   id: ecr
-    #   run: echo "::set-output name=url::$(terraform output -raw ecr_repository_url)"
 
       
-    - name: build, tag and push image to ECR
-      env:
-        ECR_REGISTRY: ${{ steps.ecr.outputs.url }}
-        ECR_REPOSITORY: my-flask-app
-        IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}
-#        IMAGE_TAG: flask_app
-      run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-    # - name: Deploy to EKS
-    #   uses: aws-actions/eks-update-kubeconfig@v1
-    #   with:
-    #     cluster-name: my-cluster
-    #     region: us-west-2
-
-    #   - name: Verify Deployment
-    #     run: |
-    #       kubectl rollout status deployment/flask-app
 
 
 
