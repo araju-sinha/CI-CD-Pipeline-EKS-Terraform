@@ -6,11 +6,6 @@ terraform {
     }
   }
 }
-provider "aws" {
-  region = "us-west-2"
-  access_key = ${{ secrets.AWS_ACCESS_KEY }}
-  secret_key = ${{ secrets.AWS_SECRET_KEY }}
-}
 
 #Container Registry
 resource "aws_ecr_repository" "flask_app_ecr" {
