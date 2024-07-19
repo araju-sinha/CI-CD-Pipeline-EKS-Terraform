@@ -4,7 +4,10 @@ name: CI-CD-flask-pipeline
 
 on:
   workflow_dispatch:
-  
+env:
+ ECR_REPOSITORY: flask_app_ecr
+ IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}
+
 #Jobs to build, configure and push 
 jobs:
   Deployment:
@@ -21,6 +24,20 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-west-2
 
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Get ECR repository URI
+    # ecr_repository_url = "678499129427.dkr.ecr.us-west-2.amazonaws.com/flask_app_ecr"
+      id: get_ecr_uri
+      run: |
+        ECR_REPOSITORY_URI=$(aws ecr describe-repositories --repository-names $REPOSITORY_NAME --query 'repositories[0].repositoryUri' --output text)
+        echo "ECR_REPOSITORY_URI=$ECR_REPOSITORY_URI" >> $GITHUB_ENV
+
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
@@ -33,26 +50,14 @@ jobs:
     - name: docker version command
       run: docker --version
 
-    - name: Get ECR repository URL
-      id: ecr
-      run: echo "::set-output name=url::$(terraform output -raw ecr_repository_url)"
-
     - name: build, tag and push image to ECR
-      env:
-        ECR_REGISTRY: ${{ steps.ecr.outputs.url }}
-        ECR_REPOSITORY: flask_app_ecr
-        IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}
 #        IMAGE_TAG: flask_app
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $flask_image_output
-        echo $flask_image_output
-
+        docker build -t ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG ./app
+        docker ps -a 
+#        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./app
      #   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
      
-    - name: executing docker commands
-      run: docker ps -a 
-
     # - name: Deploy to EKS
     #   uses: aws-actions/amazon-eks-deploy@v1
     #   with:
