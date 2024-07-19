@@ -2,6 +2,12 @@ provider "aws" {
   region = "us-west-2"
 }
 
+provider "aws" {
+  region = "us-west-2"
+  access_key = ${{ secrets.AWS_ACCESS_KEY }}
+  secret_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+}
+
 terraform {
   backend "s3" {
     bucket         = "eks-rds-state-bucket"
@@ -11,11 +17,6 @@ terraform {
   }
 }
 
-provider "aws" {
-  region = "us-west-2"
-  access_key = ${{ secrets.AWS_ACCESS_KEY }}
-  secret_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-}
 
 #Container Registry
 resource "aws_ecr_repository" "flask_app_ecr" {
