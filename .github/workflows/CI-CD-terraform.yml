@@ -60,20 +60,24 @@ jobs:
          terraform ${{ inputs.terraform }} -auto-approve
 
     - name: Login to Amazon ECR
+      if: ${{ github.event.inputs.terraform == 'apply' }}
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Configure Docker Client
+      if: ${{ github.event.inputs.terraform == 'apply' }}
       run: |-
          gcloud auth configure-docker --quiet
          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
     - name: Build and push with variables
+      if: ${{ github.event.inputs.terraform == 'apply' }}
       run: |
         docker build -t ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG ./app
         docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
     # - name: Install kubectl
+    #   if: ${{ github.event.inputs.terraform == 'apply' }}
     #   run: |
     #     curl -LO "https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl"
     #     chmod +x ./kubectl
@@ -81,10 +85,12 @@ jobs:
     #     kubectl version --client
 
     # - name: Update kubeconfig
+    #   if: ${{ github.event.inputs.terraform == 'apply' }}
     #   run: |
     #     aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
     # - name: Deploy to EKS
+    #   if: ${{ github.event.inputs.terraform == 'apply' }}
     #   run: |
     #     kubectl apply -f - <<EOF
     #     apiVersion: apps/v1
