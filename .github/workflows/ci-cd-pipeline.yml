@@ -27,20 +27,6 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Set up AWS CLI
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
-
-    - name: Get ECR repository URI
-    # ecr_repository_url = "678499129427.dkr.ecr.us-west-2.amazonaws.com/flask_app_ecr"
-      id: get_ecr_uri
-      run: |
-        ECR_REPOSITORY_URI=$(aws ecr describe-repositories --repository-names $ECR_REPOSITORY --query 'repositories[0].repositoryUri' --output text)
-        echo "ECR_REPOSITORY_URI=$ECR_REPOSITORY_URI" >> $GITHUB_ENV
-
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
@@ -49,9 +35,13 @@ jobs:
       run: |-
          gcloud auth configure-docker --quiet
          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
-
-    - name: docker version command
-      run: docker --version
+         
+    - name: Get ECR repository URI
+    # ecr_repository_url = "678499129427.dkr.ecr.us-west-2.amazonaws.com/flask_app_ecr"
+      id: get_ecr_uri
+      run: |
+        ECR_REPOSITORY_URI=$(aws ecr describe-repositories --repository-names $ECR_REPOSITORY --query 'repositories[0].repositoryUri' --output text)
+        echo "ECR_REPOSITORY_URI=$ECR_REPOSITORY_URI" >> $GITHUB_ENV
 
     - name: build, tag and push image to ECR
       run: |
