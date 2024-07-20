@@ -11,6 +11,7 @@ env:
  AWS_REGION: us-west-2
  EKS_CLUSTER_NAME: eks-cluster-01
  APP_NAME: my-flask-app
+ AWS_ACCOUNT_ID: 678499129427
   
 #Jobs to build, configure and push 
 jobs:
