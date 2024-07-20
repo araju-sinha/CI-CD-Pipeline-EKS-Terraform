@@ -74,51 +74,51 @@ jobs:
         docker build -t ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG ./app
         docker push ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
 
-    # - name: Install kubectl
-    #   run: |
-    #     curl -LO "https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl"
-    #     chmod +x ./kubectl
-    #     sudo mv ./kubectl /usr/local/bin/kubectl
-    #     kubectl version --client
+    - name: Install kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl"
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+        kubectl version --client
 
-    # - name: Update kubeconfig
-    #   run: |
-    #     aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
-    # - name: Deploy to EKS
-    #   run: |
-    #     kubectl apply -f - <<EOF
-    #     apiVersion: apps/v1
-    #     kind: Deployment
-    #     metadata:
-    #       name: ${{ env.APP_NAME }}
-    #     spec:
-    #       replicas: 3
-    #       selector:
-    #         matchLabels:
-    #           app: ${{ env.APP_NAME }}
-    #       template:
-    #         metadata:
-    #           labels:
-    #             app: ${{ env.APP_NAME }}
-    #         spec:
-    #           containers:
-    #           - name: ${{ env.APP_NAME }}
-    #             image: ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
-    #             ports:
-    #             - containerPort: 80
-    #     ---
-    #     apiVersion: v1
-    #     kind: Service
-    #     metadata:
-    #       name: my-app-service
-    #     spec:
-    #       type: LoadBalancer
-    #       selector:
-    #         app: ${{ env.APP_NAME }}
-    #       ports:
-    #         - protocol: TCP
-    #           port: 80
-    #           targetPort: 80
-    #     EOF
+    - name: Deploy to EKS
+      run: |
+        kubectl apply -f - <<EOF
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: ${{ env.APP_NAME }}
+        spec:
+          replicas: 3
+          selector:
+            matchLabels:
+              app: ${{ env.APP_NAME }}
+          template:
+            metadata:
+              labels:
+                app: ${{ env.APP_NAME }}
+            spec:
+              containers:
+              - name: ${{ env.APP_NAME }}
+                image: ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
+                ports:
+                - containerPort: 80
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: my-app-service
+        spec:
+          type: LoadBalancer
+          selector:
+            app: ${{ env.APP_NAME }}
+          ports:
+            - protocol: TCP
+              port: 80
+              targetPort: 80
+        EOF
     
