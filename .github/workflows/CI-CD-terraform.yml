@@ -5,6 +5,15 @@ on:
   #   branches: [ master ]
   # Allow Manually trigger the workflow from GitHuB Action tab
   workflow_dispatch:
+    inputs:
+      terraform:
+        description: terraform command to choose apply or destroy
+        required: true
+        default: apply
+        type: choice
+        options: 
+        - apply
+        - destroy
 env:
  ECR_REPOSITORY: flask_app_ecr
  IMAGE_TAG: ${{ github.sha }}
@@ -38,14 +47,15 @@ jobs:
     - name: Initialize Terraform
       run: |
         cd infra/terraform 
-        terraform init 
-        terraform validate
-        terraform plan 
+        terraform destroy
+#        terraform init 
+#        terraform validate
+#        terraform ${{ inputs.terraform }} 
 
     - name: terraform apply
       run: |
          cd infra/terraform
-         terraform apply -auto-approve
+         terraform ${{ inputs.terraform }} -auto-approve
 
     - name: Login to Amazon ECR
       id: login-ecr
