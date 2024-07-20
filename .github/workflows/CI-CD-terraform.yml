@@ -22,10 +22,17 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
       
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+    # - name: Configure AWS credentials
+    #   uses: aws-actions/configure-aws-credentials@v1
+    #   with:
+    #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+    #     aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+    #     aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v2
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
@@ -45,13 +52,6 @@ jobs:
       run: |
          cd infra/terraform
          terraform apply -auto-approve
-
-    - name: Set up AWS CLI
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
 
     - name: Get ECR repository URI
     # ecr_repository_url = "678499129427.dkr.ecr.us-west-2.amazonaws.com/flask_app_ecr"
@@ -74,51 +74,51 @@ jobs:
         docker build -t ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG ./app
         docker push ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
 
-    - name: Install kubectl
-      run: |
-        curl -LO "https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl"
-        chmod +x ./kubectl
-        sudo mv ./kubectl /usr/local/bin/kubectl
-        kubectl version --client
+    # - name: Install kubectl
+    #   run: |
+    #     curl -LO "https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl"
+    #     chmod +x ./kubectl
+    #     sudo mv ./kubectl /usr/local/bin/kubectl
+    #     kubectl version --client
 
-    - name: Update kubeconfig
-      run: |
-        aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+    # - name: Update kubeconfig
+    #   run: |
+    #     aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
-    - name: Deploy to EKS
-      run: |
-        kubectl apply -f - <<EOF
-        apiVersion: apps/v1
-        kind: Deployment
-        metadata:
-          name: ${{ env.APP_NAME }}
-        spec:
-          replicas: 3
-          selector:
-            matchLabels:
-              app: ${{ env.APP_NAME }}
-          template:
-            metadata:
-              labels:
-                app: ${{ env.APP_NAME }}
-            spec:
-              containers:
-              - name: ${{ env.APP_NAME }}
-                image: ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
-                ports:
-                - containerPort: 80
-        ---
-        apiVersion: v1
-        kind: Service
-        metadata:
-          name: my-app-service
-        spec:
-          type: LoadBalancer
-          selector:
-            app: ${{ env.APP_NAME }}
-          ports:
-            - protocol: TCP
-              port: 80
-              targetPort: 80
-        EOF
+    # - name: Deploy to EKS
+    #   run: |
+    #     kubectl apply -f - <<EOF
+    #     apiVersion: apps/v1
+    #     kind: Deployment
+    #     metadata:
+    #       name: ${{ env.APP_NAME }}
+    #     spec:
+    #       replicas: 3
+    #       selector:
+    #         matchLabels:
+    #           app: ${{ env.APP_NAME }}
+    #       template:
+    #         metadata:
+    #           labels:
+    #             app: ${{ env.APP_NAME }}
+    #         spec:
+    #           containers:
+    #           - name: ${{ env.APP_NAME }}
+    #             image: ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
+    #             ports:
+    #             - containerPort: 80
+    #     ---
+    #     apiVersion: v1
+    #     kind: Service
+    #     metadata:
+    #       name: my-app-service
+    #     spec:
+    #       type: LoadBalancer
+    #       selector:
+    #         app: ${{ env.APP_NAME }}
+    #       ports:
+    #         - protocol: TCP
+    #           port: 80
+    #           targetPort: 80
+    #     EOF
     
