@@ -50,7 +50,7 @@ jobs:
         cd infra/terraform 
         terraform init 
         terraform validate
-        terraform ${{ inputs.terraform }} 
+        terraform ${{ inputs.terraform }} -auto-approve
 
     - name: terraform destroy
       if: ${{ github.event.inputs.terraform == 'destroy' }}
