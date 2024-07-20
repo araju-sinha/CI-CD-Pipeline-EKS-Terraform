@@ -45,7 +45,8 @@ jobs:
         terraform_version: 1.5.0
         
     - name: Initialize Terraform and apply 
-      if: ${{ github.event.inputs.terraform == 'apply' }}
+      id: terraform-plan_apply
+      if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.terraform == 'apply' || github.event_name == 'push' || github.event_name == 'pull_request' }}
       run: |
         cd infra/terraform 
         terraform init 
@@ -53,25 +54,26 @@ jobs:
         terraform ${{ inputs.terraform }} -auto-approve
 
     - name: terraform destroy
-      if: ${{ github.event.inputs.terraform == 'destroy' }}
+      id: terraform-destroy
+      if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.terraform == 'destroy' }}
       run: |
          cd infra/terraform
          terraform init -reconfigure
          terraform ${{ inputs.terraform }} -auto-approve
 
     - name: Login to Amazon ECR
-      if: ${{ github.event.inputs.terraform == 'apply' }}
+      if: steps.terraform-plan_apply.outcome == 'success'
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Configure Docker Client
-      if: ${{ github.event.inputs.terraform == 'apply' }}
+      if: steps.terraform-plan_apply.outcome == 'success'
       run: |-
          gcloud auth configure-docker --quiet
          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
     - name: Build and push with variables
-      if: ${{ github.event.inputs.terraform == 'apply' }}
+      if: steps.terraform-plan_apply.outcome == 'success'
       run: |
         docker build -t ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG ./app
         docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
