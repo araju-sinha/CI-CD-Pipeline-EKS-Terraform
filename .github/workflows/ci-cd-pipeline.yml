@@ -45,9 +45,9 @@ jobs:
 
     - name: build, tag and push image to ECR
       run: |
-        docker build -t ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG ./app
+        docker build -t $ECR_REPOSITORY_URI:$IMAGE_TAG ./app
         docker ps -a 
-        docker push ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
+        docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
 
     - name: Install kubectl
       run: |
