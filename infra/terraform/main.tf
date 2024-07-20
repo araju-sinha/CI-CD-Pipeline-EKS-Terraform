@@ -4,7 +4,7 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket         = "eks-rds-state-bucket"
+    bucket         = "eks-rds-github-state"
     key            = "ecr-rds/statefile/terraform.tfstate"
     region         = "us-west-2"
     dynamodb_table = "terraform-lock-table"
@@ -18,14 +18,6 @@ resource "aws_ecr_repository" "flask_app_ecr" {
 
   tags = {
     Name = "flask_app_ecr"
-  }
-}
-
-resource "aws_ecr_repository" "flask_app_ecr-new" {
-  name = "flask_app_ecr-new"
-
-  tags = {
-    Name = "flask_app_ecr-new"
   }
 }
 
