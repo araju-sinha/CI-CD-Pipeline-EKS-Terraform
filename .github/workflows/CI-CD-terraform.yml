@@ -44,15 +44,16 @@ jobs:
       with:
         terraform_version: 1.5.0
         
-    - name: Initialize Terraform
+    - name: Initialize Terraform and apply 
+      if: ${{ github.event.inputs.terraform == 'apply' }}
       run: |
         cd infra/terraform 
-        terraform destroy
-#        terraform init 
-#        terraform validate
-#        terraform ${{ inputs.terraform }} 
+        terraform init 
+        terraform validate
+        terraform ${{ inputs.terraform }} 
 
-    - name: terraform apply
+    - name: terraform destroy
+      if: ${{ github.event.inputs.terraform == 'destroy' }}
       run: |
          cd infra/terraform
          terraform ${{ inputs.terraform }} -auto-approve
