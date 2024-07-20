@@ -1,57 +1,3 @@
-# Configure the AWS provider
-provider "aws" {
-  region = "us-west-2"
-}
-
-# Create an S3 bucket for Terraform state files
-resource "aws_s3_bucket" "terraform_state" {
-  bucket = "my-terraform-state-bucket-gh"
-  acl    = "private"
-
-  # Enable server-side encryption
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-}
-
-# Create a DynamoDB table for Terraform state locking
-resource "aws_dynamodb_table" "terraform_locks" {
-  name         = "my-terraform-locks-gh"
-  billing_mode = "PROVISIONED"
-  read_capacity_units  = 1
-  write_capacity_units = 1
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-  hash_key = "LockID"
-}
-
-# Configure the Terraform backend to use the S3 bucket and DynamoDB table
-terraform {
-  backend "s3" {
-    bucket         = "my-terraform-state-bucket-gh"
-    key            = "statefile/terraform.tfstate-gh"
-    region         = "us-west-2"
-    dynamodb_table = "my-terraform-locks"
-  }
-}
-
-#Container Registry
-resource "aws_ecr_repository" "flask_app_ecr-github" {
-  name = "flask_app_ecr-github"
-
-  tags = {
-    Name = "flask_app_ecr-github"
-  }
-}
-
-
-/*
 provider "aws" {
   region = "us-west-2"
 }
@@ -66,15 +12,15 @@ terraform {
 }
 
 
-resource "aws_ecr_repository" "flask_app_ecr-github-new" {
-  name = "flask_app_ecr-github-new"
+resource "aws_ecr_repository" "flask_app_ecr-github" {
+  name = "flask_app_ecr-github"
 
   tags = {
-    Name = "flask_app_ecr-github-new"
+    Name = "flask_app_ecr-github"
   }
 }
 
-
+/*
 # VPC Configuration ------------- with 2 public subnets for app and 2 private subnets for RDS 
 resource "aws_vpc" "my-vpc-01" {
   cidr_block           = "10.0.0.0/16"
