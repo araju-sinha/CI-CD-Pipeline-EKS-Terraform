@@ -1,8 +1,8 @@
 name: Deploy to ECR
 on:
   # Triggers the workflow on push, when any cahnges are done in repo on master branch
-  # push:
-  #   branches: [ master ]
+  push:
+    branches: [ master ]
   # Allow Manually trigger the workflow from GitHuB Action tab
   workflow_dispatch:
 env:
@@ -55,17 +55,10 @@ jobs:
          gcloud auth configure-docker --quiet
          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-    - name: Get ECR repository URI
-    # ecr_repository_url = "678499129427.dkr.ecr.us-west-2.amazonaws.com/flask_app_ecr"
-      id: get_ecr_uri
+    - name: Build and push with variables
       run: |
-        ECR_REPOSITORY_URI=$(aws ecr describe-repositories --repository-names $ECR_REPOSITORY --query 'repositories[0].repositoryUri' --output text)
-        echo "ECR_REPOSITORY_URI=$ECR_REPOSITORY_URI" >> $GITHUB_ENV
-
-    - name: build, tag and push image to ECR
-      run: |
-        docker build -t ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG ./app
-        docker push ${{ env.ECR_REPOSITORY_URI }}:$IMAGE_TAG
+        docker build -t ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG ./app
+        docker push ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.us-west-2.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
     # - name: Install kubectl
     #   run: |
