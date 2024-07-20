@@ -17,6 +17,7 @@ resource "aws_ecr_repository" "flask_app_ecr" {
   }
 }
 
+/*
 # VPC Configuration ------------- with 2 public subnets for app and 2 private subnets for RDS 
 resource "aws_vpc" "my-vpc-01" {
   cidr_block           = "10.0.0.0/16"
@@ -168,6 +169,7 @@ resource "aws_eks_cluster" "eks-cluster-01" {
     aws_iam_role_policy_attachment.eks_cluster_role_policy
   ]
 }
+*/
 
 
 
