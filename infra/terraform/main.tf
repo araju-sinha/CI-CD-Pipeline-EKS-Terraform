@@ -13,11 +13,11 @@ terraform {
 
 
 #Container Registry
-resource "aws_ecr_repository" "flask_app_ecr" {
-  name = "flask_app_ecr"
+resource "aws_ecr_repository" "flask_app_ecr-github" {
+  name = "flask_app_ecr-github"
 
   tags = {
-    Name = "flask_app_ecr"
+    Name = "flask_app_ecr-github"
   }
 }
 
