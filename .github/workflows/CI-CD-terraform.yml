@@ -15,7 +15,7 @@ on:
         - apply
         - destroy
 env:
- ECR_REPOSITORY: flask_app_ecr
+ ECR_REPOSITORY: flask_app_ecr-github
  IMAGE_TAG: ${{ github.sha }}
  AWS_REGION: us-west-2
  EKS_CLUSTER_NAME: eks-cluster-01
