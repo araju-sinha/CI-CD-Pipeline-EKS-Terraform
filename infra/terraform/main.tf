@@ -21,6 +21,15 @@ resource "aws_ecr_repository" "flask_app_ecr-github" {
   }
 }
 
+resource "aws_ecr_repository" "flask_app_ecr-github-new" {
+  name = "flask_app_ecr-github-new"
+
+  tags = {
+    Name = "flask_app_ecr-github-new"
+  }
+}
+
+
 
 /*
 # VPC Configuration ------------- with 2 public subnets for app and 2 private subnets for RDS 
