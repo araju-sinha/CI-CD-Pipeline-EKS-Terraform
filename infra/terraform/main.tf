@@ -84,6 +84,27 @@ resource "aws_subnet" "public_02" {
   }
 }
 
+#NAT gateway
+resource "aws_eip" "nat-01" {
+  vpc = true
+
+  tags = {
+    Name = "nat-01"
+  }
+}
+
+resource "aws_nat_gateway" "k8s-nat-01" {
+  allocation_id = aws_eip.nat-01.id
+  subnet_id     = aws_subnet.public_01.id
+
+  tags = {
+    Name = "k8s-nat-01"
+  }
+
+  depends_on = [aws_internet_gateway.main_igw-01]
+}
+
+
 # Route Table for Public Subnets
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.my-vpc-01.id
@@ -98,6 +119,20 @@ resource "aws_route_table" "public" {
   }
 }
 
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.k8svpc.id
+
+  route {
+      cidr_block                 = "0.0.0.0/0"
+      nat_gateway_id             = aws_nat_gateway.k8s-nat-01.id
+    }
+
+  tags = {
+    Name = "private-route"
+  }
+}
+
+
 # Associate Public Subnets with Route Table
 resource "aws_route_table_association" "public_01" {
   subnet_id      = aws_subnet.public_01.id
@@ -107,6 +142,16 @@ resource "aws_route_table_association" "public_01" {
 resource "aws_route_table_association" "public_02" {
   subnet_id      = aws_subnet.public_02.id
   route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "private_01" {
+  subnet_id      = aws_subnet.private_01.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_02" {
+  subnet_id      = aws_subnet.private_02.id
+  route_table_id = aws_route_table.private.id
 }
 
 
@@ -199,9 +244,8 @@ resource "aws_eks_cluster" "eks-cluster-01" {
 
   vpc_config {
     subnet_ids         = [aws_subnet.public_01.id, aws_subnet.public_02.id, aws_subnet.private_01.id, aws_subnet.private_02.id]
-    security_group_ids = [aws_security_group.eks-sg-01.id]
   }
- # depends_on = [aws_iam_role_policy_attachment.eks_cluster_role_policy]
+  depends_on = [aws_iam_role_policy_attachment.eks_cluster_role_policy]
 }
 
 # Create an EKS node group
@@ -210,7 +254,7 @@ resource "aws_eks_node_group" "node-group-01" {
   node_group_name = "eks-node-group"
   node_role_arn   = aws_iam_role.eks_node_role.arn
 
-  subnet_ids      = [aws_subnet.public_01.id, aws_subnet.public_02.id, aws_subnet.private_01.id, aws_subnet.private_02.id]
+  subnet_ids      = [aws_subnet.private_01.id, aws_subnet.private_02.id]
 
   scaling_config {
     desired_size = 2
@@ -218,9 +262,13 @@ resource "aws_eks_node_group" "node-group-01" {
     min_size     = 1
   }
 
-  instance_types = ["t3.medium"]
+  instance_types = ["c1.medium"]
 
   # Depends on the EKS cluster and IAM role
- #  depends_on = [aws_eks_cluster.eks-cluster-01,aws_iam_role.eks_node_role]
+    depends_on = [
+      aws_iam_role_policy_attachment.eks_node_policy,
+      aws_iam_role_policy_attachment.eks_cni_policy,
+      aws_iam_role_policy_attachment.ec2_container_registry_read_only,
+  ]
 }
 
