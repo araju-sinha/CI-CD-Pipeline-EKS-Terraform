@@ -48,6 +48,8 @@ resource "aws_subnet" "private_01" {
 
   tags = {
     Name = "private_subnet_01"
+    "kubernetes.io/role/internal-elb" = "1"
+    "kubernetes.io/cluster/eks-cluster-01"      = "owned"
   }
 }
 
@@ -58,6 +60,8 @@ resource "aws_subnet" "private_02" {
 
   tags = {
     Name = "private_subnet_02"
+    "kubernetes.io/role/internal-elb" = "1"
+    "kubernetes.io/cluster/eks-cluster-01"      = "owned"
   }
 }
 
@@ -70,6 +74,8 @@ resource "aws_subnet" "public_01" {
 
   tags = {
     Name = "public_subnet_01"
+    "kubernetes.io/role/elb" = "1"
+    "kubernetes.io/cluster/eks-cluster-01"      = "owned"
   }
 }
 
@@ -81,6 +87,8 @@ resource "aws_subnet" "public_02" {
 
   tags = {
     Name = "public_subnet_02"
+    "kubernetes.io/role/elb" = "1"
+    "kubernetes.io/cluster/eks-cluster-01"      = "owned"
   }
 }
 
@@ -244,6 +252,12 @@ resource "aws_eks_cluster" "eks-cluster-01" {
 
   vpc_config {
     subnet_ids         = [aws_subnet.public_01.id, aws_subnet.public_02.id, aws_subnet.private_01.id, aws_subnet.private_02.id]
+# Enable private endpoint access
+    endpoint_public_access = false
+    endpoint_private_access = true  
+}
+  tags = {
+    Name = "eks-cluster-01"
   }
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_role_policy]
 }
