@@ -36,7 +36,7 @@ resource "aws_internet_gateway" "main-igw-01" {
   vpc_id = aws_vpc.my-vpc-01.id
 
   tags = {
-    Name = "main_igw-01"
+    Name = "main-igw-01"
   }
 }
 
@@ -86,7 +86,7 @@ resource "aws_subnet" "public_02" {
 
 #NAT gateway
 resource "aws_eip" "nat-01" {
-  vpc = true
+  domain = "vpc"
 
   tags = {
     Name = "nat-01"
@@ -101,7 +101,7 @@ resource "aws_nat_gateway" "k8s-nat-01" {
     Name = "k8s-nat-01"
   }
 
-  depends_on = [aws_internet_gateway.main_igw-01]
+  depends_on = [aws_internet_gateway.main-igw-01]
 }
 
 
