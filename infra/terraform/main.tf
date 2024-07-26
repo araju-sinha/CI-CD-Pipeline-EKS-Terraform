@@ -120,7 +120,7 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.k8svpc.id
+  vpc_id = aws_vpc.my-vpc-01.id
 
   route {
       cidr_block                 = "0.0.0.0/0"
