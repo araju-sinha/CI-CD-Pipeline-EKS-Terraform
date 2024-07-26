@@ -172,7 +172,7 @@ resource "aws_eks_cluster" "eks-cluster-01" {
   ]
 }
 
-/*
+
 # Create an IAM role for the EKS node group
 resource "aws_iam_role" "eks_node_role" {
   name        = "eks-node-role"
@@ -207,6 +207,14 @@ resource "aws_eks_node_group" "node-group-01" {
 
   subnet_ids      = [aws_subnet.public_01.id, aws_subnet.public_02.id, aws_subnet.private_01.id, aws_subnet.private_02.id]
 
+  scaling_config {
+    desired_size = 2
+    max_size     = 3
+    min_size     = 1
+  }
+
+  instance_types = ["t3.medium"]
+
   # Depends on the EKS cluster and IAM role
   depends_on = [
     aws_eks_cluster.eks-cluster-01,
@@ -214,4 +222,3 @@ resource "aws_eks_node_group" "node-group-01" {
   ]
 }
 
-*/
