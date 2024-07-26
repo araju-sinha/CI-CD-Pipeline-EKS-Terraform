@@ -172,4 +172,45 @@ resource "aws_eks_cluster" "eks-cluster-01" {
   ]
 }
 
+# Create an IAM role for the EKS node group
+resource "aws_iam_role" "eks_node_role" {
+  name        = "eks-node-role"
+  description = "EKS node role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+        Effect = "Allow"
+      }
+    ]
+  })
+}
+
+# Create an IAM policy attachment for the EKS node role
+resource "aws_iam_role_policy_attachment" "eks_node_policy" {
+  role       = aws_iam_role.eks_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+}
+
+
+# Create an EKS node group
+resource "aws_eks_node_group" "node-group-01" {
+  cluster_name    = aws_eks_cluster.example.name
+  node_group_name = "eks-node-group"
+  node_role_arn   = aws_iam_role.eks_node_role.arn
+
+  subnet_ids      = [aws_subnet.public_01.id, aws_subnet.public_02.id, aws_subnet.private_01.id, aws_subnet.private_02.id]
+
+  # Depends on the EKS cluster and IAM role
+  depends_on = [
+    aws_eks_cluster.eks-cluster-01,
+    aws_iam_role.eks_node_role
+  ]
+}
+
 
