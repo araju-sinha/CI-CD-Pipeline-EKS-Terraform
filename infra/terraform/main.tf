@@ -172,6 +172,7 @@ resource "aws_eks_cluster" "eks-cluster-01" {
   ]
 }
 
+/*
 # Create an IAM role for the EKS node group
 resource "aws_iam_role" "eks_node_role" {
   name        = "eks-node-role"
@@ -213,4 +214,4 @@ resource "aws_eks_node_group" "node-group-01" {
   ]
 }
 
-
+*/
