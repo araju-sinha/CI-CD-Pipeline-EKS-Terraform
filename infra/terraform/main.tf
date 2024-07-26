@@ -158,21 +158,6 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
-resource "aws_eks_cluster" "eks-cluster-01" {
-  name     = "eks-cluster-01"
-  role_arn = aws_iam_role.eks_cluster_role-01.arn
-
-  vpc_config {
-    subnet_ids         = [aws_subnet.public_01.id, aws_subnet.public_02.id, aws_subnet.private_01.id, aws_subnet.private_02.id]
-    security_group_ids = [aws_security_group.eks-sg-01.id]
-  }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.eks_cluster_role_policy
-  ]
-}
-
-
 # Create an IAM role for the EKS node group
 resource "aws_iam_role" "eks_node_role" {
   name        = "eks-node-role"
@@ -208,6 +193,17 @@ resource "aws_iam_role_policy_attachment" "ec2_container_registry_read_only" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+resource "aws_eks_cluster" "eks-cluster-01" {
+  name     = "eks-cluster-01"
+  role_arn = aws_iam_role.eks_cluster_role-01.arn
+
+  vpc_config {
+    subnet_ids         = [aws_subnet.public_01.id, aws_subnet.public_02.id, aws_subnet.private_01.id, aws_subnet.private_02.id]
+    security_group_ids = [aws_security_group.eks-sg-01.id]
+  }
+ # depends_on = [aws_iam_role_policy_attachment.eks_cluster_role_policy]
+}
+
 # Create an EKS node group
 resource "aws_eks_node_group" "node-group-01" {
   cluster_name    = aws_eks_cluster.eks-cluster-01.name
@@ -225,9 +221,6 @@ resource "aws_eks_node_group" "node-group-01" {
   instance_types = ["t3.medium"]
 
   # Depends on the EKS cluster and IAM role
-  depends_on = [
-    aws_eks_cluster.eks-cluster-01,
-    aws_iam_role.eks_node_role
-  ]
+ #  depends_on = [aws_eks_cluster.eks-cluster-01,aws_iam_role.eks_node_role]
 }
 
