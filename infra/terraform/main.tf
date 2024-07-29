@@ -276,7 +276,7 @@ resource "aws_eks_node_group" "node-group-01" {
     min_size     = 1
   }
 
-  instance_types = ["c1.medium"]
+  instance_types = ["t3a.medium"]
 
   # Depends on the EKS cluster and IAM role
     depends_on = [
